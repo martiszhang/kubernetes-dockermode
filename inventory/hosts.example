@@ -1,0 +1,32 @@
+[all:vars]
+host_domain=example.com
+cluster_domain=cluster.com
+ingress_domain=xxx.com
+docker_disk=/dev/sdb
+registry_url=registry.cn-hangzhou.aliyuncs.com/sundayzhang
+image_version=v1.16.3
+cluster_vip=192.168.18.9
+cluster_name=mycluster.example.com
+certs_start=20191201120000
+certs_end=21191231120000
+[fileserver]
+192.168.18.9 ansible_ssh_pass=123456 ansible_ssh_user=root
+[dns]
+192.168.18.9 ansible_ssh_pass=123456 ansible_ssh_user=root
+
+[haproxy]
+192.168.18.9 hostname=haproxy ansible_ssh_pass=123456 ansible_ssh_user=root 
+
+[etcd]
+#192.168.18.11 hostname=etcd1 ansible_ssh_pass=123456 ansible_ssh_user=root
+192.168.18.12 hostname=etcd2 ansible_ssh_pass=123456 ansible_ssh_user=root
+#192.168.18.13 hostname=etcd3 ansible_ssh_pass=123456 ansible_ssh_user=root
+
+
+[master]
+#192.168.18.11 hostname=master1 ansible_ssh_pass=123456 ansible_ssh_user=root
+192.168.18.12 hostname=master2 ansible_ssh_pass=123456 ansible_ssh_user=root
+#192.168.18.13 hostname=master3 ansible_ssh_pass=123456 ansible_ssh_user=root
+
+[node]
+192.168.18.21 hostname=node1 ansible_ssh_pass=123456 ansible_ssh_user=root

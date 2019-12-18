@@ -1,0 +1,9 @@
+---
+- name: Install software cryptography
+  pip: 
+    name: "{{ item }}" 
+    state: latest
+    extra_args: -i https://mirrors.aliyun.com/pypi/simple  --trusted-host https://mirrors.aliyun.com/pypi/simple
+  loop:
+    - cryptography
+    - pyOpenSSL

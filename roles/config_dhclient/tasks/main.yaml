@@ -1,0 +1,31 @@
+---
+#- name: Copy dhclient.conf.j2 to /etc/chrony.conf
+#  template: src=dhclient.conf.j2 dest=/etc/dhcp/dhclient.conf mode=0644 owner=root group=root
+
+#- name: yum install software for nmcli command
+#  yum: name={{ item }} state=present
+#  loop:
+#    - NetworkManager-glib
+#    - libnm-qt-devel
+#    - nm-connection-editor
+#    - libsemanage-python
+#    - policycoreutils-python
+
+- name: get the interface contain {{ inventory_hostname }}
+  shell: ip a | grep {{ inventory_hostname }} | awk '{ print $NF }'
+  register: result
+
+- name: set variable conn 
+  set_fact: conn="{{ result.stdout }}"
+
+- name: print variable conn
+  debug: msg="{{ conn }}"
+
+- name: set ipv4.dns and ipv4.dnsserver values for {{ conn }}
+  shell: nmcli conn modify {{ conn }} ipv4.dns {{ groups['dns'] | first }}
+
+- name: set ipv4.dnssearch value for {{ conn }}
+  shell: nmcli conn modify {{ conn }} ipv4.dns-search {{ host_domain }}
+
+#- name: use systemd restart NetworkManager
+#  systemd: name=NetworkManager state=restarted enabled=yes masked=no

@@ -1,0 +1,24 @@
+---
+- name: create directory /etc/yum.repos.d/
+  file: path=/root/.kube state=directory owner=root group=root mode=0755
+
+- name: step1 create kubeconfig file admin.conf  for kubectl
+  shell: kubectl config --kubeconfig=/etc/kubernetes/admin.conf set-cluster default-cluster --server=https://{{ cluster_vip }}:6443 --certificate-authority /etc/kubernetes/pki/rootca/rootca.crt --embed-certs 
+
+- name: step2 create kubeconfig file admin.conf  for kubectl
+  shell: kubectl config --kubeconfig=/etc/kubernetes/admin.conf set-credentials default-admin --client-key /etc/kubernetes/pki/admin/admin.key --client-certificate /etc/kubernetes/pki/admin/admin.crt --embed-certs 
+
+- name: step3 create kubeconfig file scheduler.conf  kubectl
+  shell: kubectl config --kubeconfig=/etc/kubernetes/admin.conf set-context default-system --cluster default-cluster --user default-admin
+
+- name: step4 create kubeconfig file scheduler.conf  for kubectl
+  shell: kubectl config --kubeconfig=/etc/kubernetes/admin.conf use-context default-system
+
+- name: copy file /etc/kubernetes/admin.conf to /root/.kube/config
+  copy: src=/etc/kubernetes/admin.conf dest=/root/.kube/config owner=root group=root mode=0600 remote_src=yes
+
+- name: copy rootca to /etc/pki/ca-trust/source/anchors/ for update
+  copy: src=/etc/kubernetes/pki/rootca/rootca.crt dest=/etc/pki/ca-trust/source/anchors/rootca.crt remote_src=yes
+
+- name: update ca
+  shell: /usr/bin/update-ca-trust

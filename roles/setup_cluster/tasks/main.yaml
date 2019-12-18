@@ -1,0 +1,8 @@
+---
+- name: execute command kubeadm init
+  shell: kubeadm init --apiserver-advertise-address={{ inventory_hostname }} --control-plane-endpoint={{ groups['haproxy'] | first | join('')}} --upload-certs --image-repository=registry.cn-hangzhou.aliyuncs.com/sundayzhang --pod-network-cidr=10.128.0.0/16
+  when: inventory_hostname == groups['master'] | first 
+  register: kubeadminfo
+
+- name: debug
+  debug: msg="{{ kubeadminfo }}"

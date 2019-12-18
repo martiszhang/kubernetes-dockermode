@@ -1,0 +1,45 @@
+---
+- name: Yum install dns server named
+  yum: name=bind state=present 
+
+- name: create directory /var/named/tsigfile
+  file: path=/var/named/tsigfile state=directory owner=root group=named mode=0755
+
+- name: Use multiple patterns for key and private files
+  find:
+    paths: /var/named/tsigfile
+    file_type: file
+    use_regex: yes
+    patterns:
+      - '^K{{ host_domain }}.*.key$'
+      - '^K{{ host_domain }}.*.private$'
+  register: result
+  
+- name: debug
+  debug: msg={{ result }}
+
+- name: config dns server use tsigkey
+  shell: dnssec-keygen -K /var/named/tsigfile -a HMAC-MD5 -b 128 -n HOST {{ host_domain }} 
+  when: result.matched == 0
+
+- name: Find the tsigfile of key$ files
+  find:
+    paths: /var/named/tsigfile
+    file_type: file
+    use_regex: yes
+    patterns:
+      - '^K{{ host_domain }}.*.key$'
+  register: resultkey
+  
+- name: set variable for key file name
+  set_fact: tsigfile_key={{ resultkey.files[0].path }}
+
+- name: Read key file  and return it
+  shell: cat {{ tsigfile_key }}
+  register: users
+
+- name: debug
+  debug: msg="{{ users.stdout_lines[0].split()[-1] }}"
+
+- name: debug
+  debug: msg="{{ ansible_play_name }}"

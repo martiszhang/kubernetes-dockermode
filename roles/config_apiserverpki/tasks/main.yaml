@@ -1,0 +1,70 @@
+---
+ - name: create dir /etc/kubernetes/pki 
+   file: path=/etc/kubernetes/pki/{{ item }} state=directory mode=0755
+   loop:
+     - apiserver
+
+ - name: Download rootca.crt and rootca.key
+   get_url:
+     url: http://{{ groups['fileserver'] | join('') }}/kubernetes/pki/rootca/{{ item }}
+     dest: /etc/kubernetes/pki/rootca/{{item}}
+   loop:
+     - rootca.crt
+     - rootca.key
+
+
+ - name: generate apiserver service private key
+   openssl_privatekey: path=/etc/kubernetes/pki/apiserver/apiserver.key
+
+ - name: Generate an OpenSSL Certificate Signing Request apiserver.csr
+   openssl_csr:
+     path: /etc/kubernetes/pki/apiserver/apiserver.csr
+     privatekey_path: /etc/kubernetes/pki/apiserver/apiserver.key
+     country_name: CN
+     state_or_province_name: Beijing
+     organization_name: Cloud
+     organizational_unit_name: Development
+     common_name: "apiserver"
+     subject_alt_name: ["IP:127.0.0.1","IP:{{ inventory_hostname }}","DNS:{{ ansible_fqdn }}","DNS:kubernetes","DNS:kubernetes.default","DNS:kubernetes.default.svc","DNS:kubernetes.default.cluster.local","DNS:{{ cluster_name | default('')}}","IP:{{ cluster_vip | default('127.0.0.1')}}"]
+ 
+ - name: Generate apiserver.crt
+   openssl_certificate:
+     path: /etc/kubernetes/pki/apiserver/apiserver.crt
+     csr_path: /etc/kubernetes/pki/apiserver/apiserver.csr
+     ownca_path: /etc/kubernetes/pki/rootca/rootca.crt
+     ownca_privatekey_path: /etc/kubernetes/pki/rootca/rootca.key
+     ownca_not_before: "{{ certs_start }}Z"
+     ownca_not_after: "{{ certs_end }}Z"
+     provider: ownca
+
+
+ - name: generate kube-apiserver-client private key
+   openssl_privatekey: path=/etc/kubernetes/pki/apiserver/kube-apiserver-client.key
+
+ - name: Generate an OpenSSL Certificate Signing Request kube-apiserver-client.csr
+   openssl_csr:
+     path: /etc/kubernetes/pki/apiserver/kube-apiserver-client.csr
+     privatekey_path: /etc/kubernetes/pki/apiserver/kube-apiserver-client.key
+     country_name: CN
+     state_or_province_name: Beijing
+     organization_name: "system:masters"
+     organizational_unit_name: Development
+     common_name: "kube-apiserver-client"
+
+ - name: Generate an OpenSSL certificate signed with your own CA certificate
+   openssl_certificate:
+     path: /etc/kubernetes/pki/apiserver/kube-apiserver-client.crt
+     csr_path: /etc/kubernetes/pki/apiserver/kube-apiserver-client.csr
+     ownca_path: /etc/kubernetes/pki/rootca/rootca.crt
+     ownca_privatekey_path: /etc/kubernetes/pki/rootca/rootca.key
+     ownca_not_before: "{{ certs_start }}Z"
+     ownca_not_after: "{{ certs_end }}Z"
+     provider: ownca
+
+ - name: Download sa.key and sa.pub
+   get_url:
+     url: http://{{ groups['fileserver'] | join('') }}/kubernetes/pki/sa/{{ item }}
+     dest: /etc/kubernetes/pki/apiserver/{{item}}
+   loop:
+     - sa.key
+     - sa.pub

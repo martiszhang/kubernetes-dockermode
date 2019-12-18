@@ -1,0 +1,43 @@
+---
+ - name: create directory /var/www/html/kubernetes/pki/
+   file: path=/var/www/html/kubernetes/pki/rootca state=directory owner=root group=root mode=0755   
+
+ - name: generate ca private key
+   openssl_privatekey: path=/var/www/html/kubernetes/pki/rootca/rootca.key owner=root group=root mode=0644
+
+
+ - name: Generate an OpenSSL Certificate Signing Request rootca.csr
+   openssl_csr:
+     path: /var/www/html/kubernetes/pki/rootca/rootca.csr
+     privatekey_path: /var/www/html/kubernetes/pki/rootca/rootca.key
+     country_name: CN
+     state_or_province_name: Beijing
+     organization_name: Cloud
+     organizational_unit_name: Development
+     common_name: rootca
+     basic_constraints: ["CA:TRUE"]
+
+ 
+ - name: Generate a Self Signed OpenSSL rootca.crt
+   openssl_certificate: 
+     path: /var/www/html/kubernetes/pki/rootca/rootca.crt
+     privatekey_path: /var/www/html/kubernetes/pki/rootca/rootca.key
+     csr_path: /var/www/html/kubernetes/pki/rootca/rootca.csr
+     selfsigned_not_before: "{{ certs_start }}Z"
+     selfsigned_not_after: "{{ certs_end }}Z"
+     provider: selfsigned
+
+ - name: create directory /var/www/html/kubernetes/pki/
+   file: path=/var/www/html/kubernetes/pki/sa state=directory owner=root group=root mode=0755
+
+ - name: generate sa private key
+   openssl_privatekey: path=/var/www/html/kubernetes/pki/sa/sa.key owner=root group=root mode=0644
+ 
+ - name: Generate an OpenSSL public key 
+   openssl_publickey:
+    path: /var/www/html/kubernetes/pki/sa/sa.pub
+    privatekey_path: /var/www/html/kubernetes/pki/sa/sa.key
+    owner: root
+    group: root
+    mode: 0644
+

@@ -1,0 +1,14 @@
+---
+- name: Install the latest version of haproxy
+  yum: name=chrony state=present
+
+- name: Copy haproxy.conf.j2 to /etc/haproxy/haproxy.conf
+  template: src=haproxy.cfg.j2 dest=/etc/haproxy/haproxy.cfg mode=0644 owner=root group=root
+
+- name: Add haproxy to systemd 
+  systemd: name=haproxy state=started enabled=yes masked=no
+
+- name: configure  firewalld policy for haproxy server
+  firewalld: port={{ item }} permanent=true state=enabled immediate=true
+  loop:
+    - 6443/tcp

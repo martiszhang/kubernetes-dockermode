@@ -1,0 +1,31 @@
+---
+- name: Add the br_netfilter module
+  modprobe:
+    name: br_netfilter
+    state: present
+
+- name: set kernel parameter for kubernetes
+  sysctl:
+    name: "{{ item }}"
+    value: '1'
+    sysctl_set: yes
+    state: present
+    reload: yes
+  loop:
+     - net.bridge.bridge-nf-call-ip6tables
+     - net.bridge.bridge-nf-call-iptables 
+     - net.ipv4.ip_forward
+
+- name: yum install kubelet kubeadm kubectl
+  yum: name={{ item }} state=present 
+  loop:
+    - kubelet
+    #- kubeadm
+    - kubectl
+ 
+- name: config stand mode kubelet
+  template: src=kubelet.service.j2 dest=/usr/lib/systemd/system/kubelet.service owner=root group=root mode=0644
+
+- name: restart kubelet
+  systemd: name=kubelet state=restarted enabled=yes masked=no daemon_reload=yes
+

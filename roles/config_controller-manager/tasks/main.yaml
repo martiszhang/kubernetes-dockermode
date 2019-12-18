@@ -1,0 +1,15 @@
+---
+- name: step1 create kubeconfig file controller-manager.conf  for controller-manager
+  shell: kubectl config --kubeconfig=/etc/kubernetes/controller-manager.conf set-cluster default-cluster --server=https://{{ cluster_vip }}:6443 --certificate-authority /etc/kubernetes/pki/rootca/rootca.crt --embed-certs 
+
+- name: step2 create kubeconfig file controller-manager.conf  for controller-manager
+  shell: kubectl config --kubeconfig=/etc/kubernetes/controller-manager.conf set-credentials default-controller-manager --client-key /etc/kubernetes/pki/controller-manager/controller-manager.key --client-certificate /etc/kubernetes/pki/controller-manager/controller-manager.crt --embed-certs 
+
+- name: step3 create kubeconfig file controller-manager.conf  for controller-manager
+  shell: kubectl config --kubeconfig=/etc/kubernetes/controller-manager.conf set-context default-system --cluster default-cluster --user default-controller-manager
+
+- name: step4 create kubeconfig file controller-manager.conf  for controller-manager
+  shell: kubectl config --kubeconfig=/etc/kubernetes/controller-manager.conf use-context default-system
+
+- name: copy file kube-controller-manager.yaml.j2 to /etc/kubernetes/manifests/kube-controller-manager.yaml
+  template: src=kube-controller-manager.yaml.j2 dest=/etc/kubernetes/manifests/kube-controller-manager.yaml owner=root group=root mode=0600

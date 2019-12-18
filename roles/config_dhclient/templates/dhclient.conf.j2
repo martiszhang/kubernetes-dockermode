@@ -1,0 +1,4 @@
+#prepend domain-name-servers {{ groups['dns'] | join('') }}; 
+supersede  domain-name-servers {{ groups['dns'] | join('') }}; 
+#prepend domain-search "example.com";
+supersede  domain-search "example.com";

@@ -1,0 +1,51 @@
+---
+- name: Yum install lvm2
+  yum: name=lvm2 state=present 
+
+- name: Create a volume group on top of /dev/sdb 
+  lvg:
+    vg: docker-vg
+    pvs: /dev/sdb
+
+- name: Check docker-lv if exsit or not 
+  shell: lvs  | grep "docker-lv"
+  register: result
+  ignore_errors: true
+
+- name: debug
+  debug: msg="{{ result.rc }}"
+ 
+- name: Create a logical volume the size of all remaining space in the volume group
+  lvol:
+    vg: docker-vg
+    lv: docker-lv
+    size: 100%FREE
+  when: result.rc != 0
+
+- name: Create a xfs filesystem on /dev/docker-vg/docker-lv
+  filesystem:
+    fstype: xfs
+    dev: /dev/docker-vg/docker-lv
+    opts: "-n ftype=1"
+
+- name: Yum install docker compoent
+  yum: name={{ item }} state=present
+  loop:
+    - docker-ce-18.06.2.ce
+
+- name: Mount up device /dev/docker-vg/docker-lv to mount point /var/lib/docker
+  mount:
+    path: /var/lib/docker
+    src: /dev/docker-vg/docker-lv
+    fstype: xfs
+    state: mounted
+
+- name: create directory /etc/docker/
+  file: path=/etc/docker/ state=directory owner=root group=root mode=0755
+
+- name: Copy file daemon.json to /etc/docker/
+  copy: src=daemon.json  dest=/etc/docker/daemon.json 
+
+- name: Start and enable docker 
+  systemd: name=docker state=started enabled=yes masked=no 
+

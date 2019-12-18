@@ -1,0 +1,25 @@
+---
+- name: step1 create kubeconfig file kubelet.conf  for kubelet
+  shell: kubectl config --kubeconfig=/etc/kubernetes/kubelet.conf set-cluster default-cluster --server=https://{{ cluster_vip }}:6443 --certificate-authority /etc/kubernetes/pki/rootca/rootca.crt --embed-certs 
+
+- name: step2 create kubeconfig file kubelet  for kubelet
+  shell: kubectl config --kubeconfig=/etc/kubernetes/kubelet.conf set-credentials default-auth --client-key /etc/kubernetes/pki/kubelet/kubelet.key --client-certificate /etc/kubernetes/pki/kubelet/kubelet.crt --embed-certs 
+
+- name: step3 create kubeconfig file kubelet.conf  for kubelet
+  shell: kubectl config --kubeconfig=/etc/kubernetes/kubelet.conf set-context default-system --cluster default-cluster --user default-auth
+
+- name: step4 create kubeconfig file kubelet.conf  for kubelet
+  shell: kubectl config --kubeconfig=/etc/kubernetes/kubelet.conf use-context default-system
+
+- name: create directory /etc/yum.repos.d/
+  file: path=/var/lib/kubelet state=directory owner=root group=root mode=0755
+
+- name: copy file kubelet.yaml.j2 to /etc/kubernetes/manifests/kubelet.yaml
+  template: src=kubelet.yaml.j2 dest=/var/lib/kubelet/config.yaml owner=root group=root mode=0600
+
+- name: config non stand mode kubelet
+  template: src=kubelet.service.j2 dest=/usr/lib/systemd/system/kubelet.service owner=root group=root mode=0644
+
+- name: restart kubelet
+  systemd: name=kubelet state=restarted enabled=yes masked=no daemon_reload=yes
+

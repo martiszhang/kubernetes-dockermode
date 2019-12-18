@@ -1,0 +1,5 @@
+---
+- hosts: haproxy
+  roles:
+    - config_yumrepo
+    - config_haproxy

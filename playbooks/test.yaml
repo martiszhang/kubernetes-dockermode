@@ -1,0 +1,60 @@
+- name: deploy
+#  hosts: etcd
+#  roles:
+#    - role: config_hostname
+#      when: inventory_hostname not in groups['master']
+#    - role: config_timezone
+#      when: inventory_hostname not in groups['master']
+#    - role: config_selinux
+#      when: inventory_hostname not in groups['master']
+#    - role: reboot
+#      when: inventory_hostname not in groups['master']
+#    - role: config_yumrepo
+#      when: inventory_hostname not in groups['master']
+#    - role: config_chrony
+#      when: inventory_hostname not in groups['master']
+#    - role: config_docker
+#      when: inventory_hostname not in groups['master']
+#    - role: config_iptables    
+#      when: inventory_hostname not in groups['master']
+
+#  hosts: master
+#  roles:
+#    - config_hostname
+#    - config_timezone
+#    - config_selinux
+#    - reboot
+#    - config_yumrepo
+#    - config_chrony
+#    - config_docker
+#    - config_iptables
+#    - config_swap
+#    - config_dhclient
+#    - config_kubelete
+
+  hosts: 127.0.0.1
+  roles:
+    - config_yumrepo
+    - install_pip 
+    - install_cryptography 
+    - generate_rootca
+    - generate_etcdpki 
+#  hosts: master
+#  roles:
+#    - config_swap
+#    - config_dhclient
+#    - setup_cluster
+
+#  hosts: node
+#  roles:
+#    - config_hostname
+#    - config_timezone
+#    - config_selinux
+#    - reboot
+#    - config_yumrepo
+#    - config_chrony
+#    - config_docker
+#    - config_iptables
+#    - config_kubelete
+#    - config_dhclient
+

@@ -1,0 +1,18 @@
+---
+- name: delete directory /etc/yum.repos.d/
+  file: path=/etc/yum.repos.d/ state=absent
+
+- name: create directory /etc/yum.repos.d/
+  file: path=/etc/yum.repos.d/ state=directory owner=root group=root mode=0755
+
+#- name: Check that a page returns a status 200 and fail if the word AWESOME is not in the page contents
+#  uri:
+#    url: http://www.baidu.com
+#  register: curlresult
+
+#- name: print this
+#  debug: msg={{ curlresult.status }}
+
+- name: copy server.repo to {{ inventory_hostname }}
+  copy: src=server.repo dest=/etc/yum.repos.d/server.repo mode=0644 owner=root group=root force=yes
+#  when: curlresult.status == 200

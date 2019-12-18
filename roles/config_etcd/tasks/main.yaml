@@ -1,0 +1,4 @@
+---
+- name: copy file etcd.yaml.j2 to /etc/kubernetes/manifests/etcd.yaml
+  template: src=etcd.yaml.j2 dest=/etc/kubernetes/manifests/etcd.yaml owner=root group=root mode=0600
+

@@ -1,0 +1,6 @@
+- hosts: 127.0.0.1
+  tasks:
+    - name: set variable age for rootca.crt valid age
+      set_fact: time="{{ lookup('pipe', 'date -d \"+100 year\" +\"%Y%m%d%H%M%S\"') }}"
+    - name: xx
+      debug: msg="{{time}}"

@@ -1,0 +1,40 @@
+---
+ - name: create dir /etc/kubernetes/pki 
+   file: path=/etc/kubernetes/pki/{{ item }} state=directory mode=0755
+   loop:
+     - rootca
+     - kubelet
+
+ - name: Download rootca.crt and rootca.key
+   get_url:
+     url: http://{{ groups['fileserver'] | join('') }}/kubernetes/pki/rootca/{{ item }}
+     dest: /etc/kubernetes/pki/rootca/{{item}}
+   loop:
+     - rootca.crt
+     - rootca.key
+
+
+ - name: generate kubelet service private key
+   openssl_privatekey: path=/etc/kubernetes/pki/kubelet/kubelet.key
+
+ - name: Generate an OpenSSL Certificate Signing Request kubelet.csr
+   openssl_csr:
+     path: /etc/kubernetes/pki/kubelet/kubelet.csr
+     privatekey_path: /etc/kubernetes/pki/kubelet/kubelet.key
+     country_name: CN
+     state_or_province_name: Beijing
+     organization_name: "system:nodes"
+     organizational_unit_name: Development
+     common_name: "system:node:{{ ansible_fqdn }}"
+ 
+ - name: Generate kubelet.crt
+   openssl_certificate:
+     path: /etc/kubernetes/pki/kubelet/kubelet.crt
+     csr_path: /etc/kubernetes/pki/kubelet/kubelet.csr
+     ownca_path: /etc/kubernetes/pki/rootca/rootca.crt
+     ownca_privatekey_path: /etc/kubernetes/pki/rootca/rootca.key
+     ownca_not_before: "{{ certs_start }}Z"
+     ownca_not_after: "{{ certs_end }}Z"
+     provider: ownca
+
+

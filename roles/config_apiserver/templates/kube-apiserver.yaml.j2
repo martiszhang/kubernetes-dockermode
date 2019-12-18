@@ -1,0 +1,87 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  creationTimestamp: null
+  labels:
+    component: kube-apiserver
+    tier: control-plane
+  name: kube-apiserver
+  namespace: kube-system
+spec:
+  containers:
+  - command:
+    - kube-apiserver
+    - --advertise-address={{ inventory_hostname }}
+    - --allow-privileged=true
+    - --authorization-mode=Node,RBAC
+    - --client-ca-file=/etc/kubernetes/pki/rootca/rootca.crt
+    - --enable-admission-plugins=NodeRestriction
+    - --enable-bootstrap-token-auth=true
+    - --etcd-cafile=/etc/kubernetes/pki/rootca/rootca.crt
+    - --etcd-certfile=/etc/kubernetes/pki/apiserver/kube-apiserver-client.crt
+    - --etcd-keyfile=/etc/kubernetes/pki/apiserver/kube-apiserver-client.key
+    - --etcd-servers=https://{{ inventory_hostname }}:2379
+    - --insecure-port=0
+    - --kubelet-client-certificate=/etc/kubernetes/pki/apiserver/kube-apiserver-client.crt
+    - --kubelet-client-key=/etc/kubernetes/pki/apiserver/kube-apiserver-client.key
+    - --kubelet-preferred-address-types=InternalIP,ExternalIP,Hostname
+    - --proxy-client-cert-file=/etc/kubernetes/pki/apiserver/kube-apiserver-client.crt
+    - --proxy-client-key-file=/etc/kubernetes/pki/apiserver/kube-apiserver-client.key
+    - --requestheader-allowed-names=front-proxy-client
+    - --requestheader-client-ca-file=/etc/kubernetes/pki/rootca/rootca.crt
+    - --requestheader-extra-headers-prefix=X-Remote-Extra-
+    - --requestheader-group-headers=X-Remote-Group
+    - --requestheader-username-headers=X-Remote-User
+    - --secure-port=6443
+    - --service-account-key-file=/etc/kubernetes/pki/apiserver/sa.pub
+    - --service-cluster-ip-range=10.128.0.0/16
+    - --tls-cert-file=/etc/kubernetes/pki/apiserver/apiserver.crt
+    - --tls-private-key-file=/etc/kubernetes/pki/apiserver/apiserver.key
+    image: {{ registry_url }}/kube-apiserver:v1.16.3
+    imagePullPolicy: IfNotPresent
+    livenessProbe:
+      failureThreshold: 8
+      httpGet:
+        host: {{ inventory_hostname }}
+        path: /healthz
+        port: 6443
+        scheme: HTTPS
+      initialDelaySeconds: 15
+      timeoutSeconds: 15
+    name: kube-apiserver
+    resources:
+      requests:
+        cpu: 250m
+    volumeMounts:
+    - mountPath: /etc/ssl/certs
+      name: ca-certs
+      readOnly: true
+    - mountPath: /etc/pki
+      name: etc-pki
+      readOnly: true
+    - mountPath: /etc/kubernetes/pki
+      name: k8s-certs
+      readOnly: true
+    - mountPath: /etc/localtime
+      name: localtime
+      readOnly: true
+  hostNetwork: true
+  priorityClassName: system-cluster-critical
+  volumes:
+  - hostPath:
+      path: /etc/ssl/certs
+      type: DirectoryOrCreate
+    name: ca-certs
+  - hostPath:
+      path: /etc/pki
+      type: DirectoryOrCreate
+    name: etc-pki
+  - hostPath:
+      path: /etc/kubernetes/pki
+      type: DirectoryOrCreate
+    name: k8s-certs
+  - hostPath:
+      path: /etc/localtime
+      type: File
+    name: localtime
+status: {}

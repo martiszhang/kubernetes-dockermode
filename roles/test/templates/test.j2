@@ -1,0 +1,1 @@
+--initial-cluster= {% for host in groups['etcd'] %}{% if not loop.last %}{{ hostvars[host]['hostname'] }}.{{ host_domain }}=https://{{host}}:2389,{% else %}{{ hostvars[host]['hostname'] }}.{{ host_domain }}=https://{{host}}:2389{% endif %}{% endfor %}

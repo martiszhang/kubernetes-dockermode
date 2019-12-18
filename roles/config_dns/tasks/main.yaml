@@ -1,0 +1,4 @@
+---
+- name: go to setup bind tasks 
+  import_tasks: setup.yaml 
+#  when: ansible_play_name == "deploy"

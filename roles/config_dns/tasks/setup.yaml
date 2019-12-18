@@ -1,0 +1,21 @@
+---
+- name: yum install dns server named
+  yum: name=bind state=present 
+
+- name: copy template file to /etc/
+  template: src=named.conf.j2 dest=/etc/named.conf owner=root group=root mode=0644
+
+- name: create directory /var/named/records
+  file: path=/var/named/records state=directory owner=named group=named mode=0755
+
+- name: copy template file to /var/named/records/
+  template: src=host_domain.j2 dest=/var/named/records/named.example.com owner=named group=named mode=0640
+
+- name: start dns service
+  systemd: name=named state=restarted enabled=yes masked=no
+
+- name: configure  firewalld policy for dns server 
+  firewalld: port={{ item }} permanent=true state=enabled immediate=true
+  loop:
+    - 53/tcp
+    - 53/udp

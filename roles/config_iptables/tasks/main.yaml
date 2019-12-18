@@ -1,0 +1,30 @@
+- name: configure  firewalld policy for kubeapiserver
+  firewalld: port={{ item }} permanent=true state=enabled immediate=true
+  loop:
+    - 6443/tcp
+    - 2379-2380/tcp
+    - 10250/tcp
+    - 10251/tcp
+    - 10252/tcp
+  when: inventory_hostname in groups['master']
+
+- name: configure  firewalld policy for kube node 
+  firewalld: port={{ item }} permanent=true state=enabled immediate=true
+  loop:
+    - 10250/tcp
+    - 30000-32767/tcp
+  when: inventory_hostname in groups['node']
+
+- name: configure  firewalld policy for dns server 
+  firewalld: port={{ item }} permanent=true state=enabled immediate=true
+  loop:
+    - 53/tcp
+    - 53/udp
+  when: inventory_hostname in groups['dns']
+
+- name: configure  firewalld policy for haproxy server
+  firewalld: port={{ item }} permanent=true state=enabled immediate=true
+  loop:
+    - 6443/tcp
+  when: inventory_hostname in groups['haproxy']
+

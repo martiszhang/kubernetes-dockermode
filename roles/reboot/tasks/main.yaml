@@ -1,0 +1,3 @@
+---
+- name: Reboot Vitual Machine
+  reboot: reboot_timeout=3600

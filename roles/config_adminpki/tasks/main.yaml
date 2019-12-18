@@ -1,0 +1,38 @@
+---
+ - name: create dir /etc/kubernetes/pki/admin
+   file: path=/etc/kubernetes/pki/{{ item }} state=directory mode=0755
+   loop:
+     - admin
+
+ - name: Download rootca.crt and rootca.key
+   get_url:
+     url: http://{{ groups['fileserver'] | join('') }}/kubernetes/pki/rootca/{{ item }}
+     dest: /etc/kubernetes/pki/rootca/{{item}}
+   loop:
+     - rootca.crt
+     - rootca.key
+
+
+ - name: generate  admin private key
+   openssl_privatekey: path=/etc/kubernetes/pki/admin/admin.key
+
+ - name: Generate an OpenSSL Certificate Signing Request admin.csr
+   openssl_csr:
+     path: /etc/kubernetes/pki/admin/admin.csr
+     privatekey_path: /etc/kubernetes/pki/admin/admin.key
+     country_name: CN
+     state_or_province_name: Beijing
+     organization_name: "system:masters"
+     organizational_unit_name: Development
+     common_name: "kubernetes-admin"
+ 
+ - name: Generate admin.crt
+   openssl_certificate:
+     path: /etc/kubernetes/pki/admin/admin.crt
+     csr_path: /etc/kubernetes/pki/admin/admin.csr
+     ownca_path: /etc/kubernetes/pki/rootca/rootca.crt
+     ownca_privatekey_path: /etc/kubernetes/pki/rootca/rootca.key
+     ownca_not_before: "{{ certs_start }}Z"
+     ownca_not_after: "{{ certs_end }}Z"
+     provider: ownca
+

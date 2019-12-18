@@ -1,0 +1,19 @@
+---
+- hosts: etcd
+  roles:
+    #- config_hostname
+    #- config_timezone
+    #- config_selinux
+    #- config_swap
+    #- reboot
+    #- config_yumrepo
+    #- config_chrony
+    #- config_dhclient
+    #- config_docker
+    #- config_kubelet_standalone 
+    #- config_iptables
+    ##- generate_kubeletpki
+    #- generate_etcdpki
+    - config_etcd
+ 
+    

@@ -1,0 +1,72 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  creationTimestamp: null
+  labels:
+    component: etcd
+  name: etcd
+  namespace: kube-system
+spec:
+  containers:
+  - command:
+    - etcd
+    - --advertise-client-urls=https://{{inventory_hostname}}:2379
+    - --cert-file=/etc/kubernetes/pki/etcd/etcd.crt
+    - --client-cert-auth=true
+    - --data-dir=/var/lib/etcd
+    - --initial-advertise-peer-urls=https://{{inventory_hostname}}:2380
+    - --initial-cluster={% for host in groups['etcd'] %}{% if not loop.last %}{{ hostvars[host]['hostname'] }}.{{ host_domain }}=https://{{host}}:2380,{% else %}{{ hostvars[host]['hostname'] }}.{{ host_domain }}=https://{{host}}:2380{% endif %}{% endfor %}
+
+    - --key-file=/etc/kubernetes/pki/etcd/etcd.key
+    - --listen-client-urls=https://{{ inventory_hostname }}:2379
+    - --listen-metrics-urls=http://127.0.0.1:2381
+    - --listen-peer-urls=https://{{ inventory_hostname }}:2380
+    - --name={{ hostname}}.{{ host_domain }}
+    - --peer-cert-file=/etc/kubernetes/pki/etcd/peer.crt
+    - --peer-client-cert-auth=true
+    - --peer-key-file=/etc/kubernetes/pki/etcd/peer.key
+    - --peer-trusted-ca-file=/etc/kubernetes/pki/rootca/rootca.crt
+    - --snapshot-count=10000
+    - --trusted-ca-file=/etc/kubernetes/pki/rootca/rootca.crt
+    image: {{ registry_url }}/etcd:3.3.15-0
+    imagePullPolicy: IfNotPresent
+    livenessProbe:
+      failureThreshold: 8
+      httpGet:
+        host: 127.0.0.1
+        path: /health
+        port: 2381
+        scheme: HTTP
+      initialDelaySeconds: 15
+      timeoutSeconds: 15
+    name: etcd
+    resources: {}
+    volumeMounts:
+    - mountPath: /var/lib/etcd
+      name: etcd-data
+    - mountPath: /etc/kubernetes/pki/etcd
+      name: etcd-certs
+    - mountPath: /etc/kubernetes/pki/rootca
+      name: rootca
+    - mountPath: /etc/localtime
+      name: localtime
+  hostNetwork: true
+  priorityClassName: system-cluster-critical
+  volumes:
+  - hostPath:
+      path: /etc/kubernetes/pki/etcd
+      type: DirectoryOrCreate
+    name: etcd-certs
+  - hostPath:
+      path: /var/lib/etcd
+      type: DirectoryOrCreate
+    name: etcd-data
+  - hostPath:
+      path: /etc/kubernetes/pki/rootca
+      type: DirectoryOrCreate
+    name: rootca
+  - hostPath:
+      path: /etc/localtime
+      type: File
+    name: localtime
+status: {}

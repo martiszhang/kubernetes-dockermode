@@ -1,0 +1,2 @@
+- name: install software python-pip 
+  yum: name=python-pip state=present

@@ -1,0 +1,8 @@
+---
+- hosts: fileserver
+  roles:
+    - config_yumrepo
+    - config_http
+    - install_pip
+    - install_cryptography
+    - generate_rootca
